@@ -1797,9 +1797,22 @@ static int lpb_decode(lua_State *L, pb_Slice s, int start) {
 }
 
 static int Lpb_decode(lua_State *L) {
-    return lpb_decode(L, lua_isnoneornil(L, 2) ?
-            pb_lslice(NULL, 0) :
-            lpb_checkslice(L, 2), 3);
+    if (lua_isnoneornil(L, 2))
+        return lpb_decode(L, pb_lslice(NULL, 0), 3);
+    else
+    {
+		int type = lua_type(L, 2);
+        if (type == LUA_TSTRING && lua_isinteger(L, 3) && lua_isinteger(L, 4))
+        {
+            long offset = lua_tointeger(L, 3);
+            long size = lua_tointeger(L, 4);
+            size_t len;
+            const char* s = lua_tolstring(L, 2, &len);
+            return lpb_decode(L, pb_lslice(s + offset, size), 5);
+        }
+        else
+            return lpb_decode(L, lpb_checkslice(L, 2), 3);
+    }
 }
 
 
